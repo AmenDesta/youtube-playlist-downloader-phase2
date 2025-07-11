@@ -1,6 +1,7 @@
 YouTube Playlist Downloader – Phase II
 
-CMSC 495 6982 Computer Science Capstone – Group 3 Last Updated: July 2025 License: Educational use only
+CMSC 495 6982 Computer Science Capstone – Group 3 Last Updated: July 2025 
+License: Educational use only
 
 Project Description
 
