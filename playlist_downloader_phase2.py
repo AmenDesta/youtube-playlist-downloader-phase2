@@ -1,15 +1,23 @@
 """
 YouTube Playlist Downloader
-Phase II Source Code (Updated)
+Phase II Source Code
 CMSC 495 6982 Computer Science Capstone – Group 3
 -------------------------------------------------
-Enhancements:
+Description:
+This Python application provides a GUI-based solution for downloading and organizing
+video files from YouTube playlists. Users can input a playlist URL, select a folder,
+and initiate downloads with visual progress tracking.
+Phase II Enhancements:
 - Stream title-based file filtering for accurate playback order
 - Reset playback index after cancellation/completion
 - Daemon threading for safe shutdown
 - Dual speed metrics (instantaneous & average)
 - Pause/Resume download controls
 - Status console for verbose feedback
+- Estimated Time of Arrival (ETA) display
+- "Play First Video" and "Play Next Video" controls
+- Automatic playback start on first indexed video
+- Responsive GUI during downloads and playback
 """
 
 import os
