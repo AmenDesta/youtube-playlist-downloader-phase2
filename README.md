@@ -35,6 +35,21 @@ pytubefix for playlist parsing and video streams
 
 threading, os, time for concurrency and system operations
 
+Testing Overview
+
+To validate software functionality, our team implemented a combination of unit tests and manual test cases:
+
+Unit Testing:
+- Implemented using Python’s unittest framework
+- Covers playback indexing, pause/resume toggles, folder assignment, and logging behavior
+- CI-integrated through GitHub Actions for automatic test execution on every commit
+- GUI-dependent tests are skipped in headless environments to ensure CI compatibility
+  
+Manual Testing:
+- 15 structured test scenarios executed across multiple systems
+- Validated playlist parsing, error handling, playback controls, console messaging, and download accuracy
+- Results documented in a spreadsheet including expected outcomes, actual behavior, and pass/fail status
+
 How to Run
 
 1. Install Required Package Open a terminal and install the required Python library:
