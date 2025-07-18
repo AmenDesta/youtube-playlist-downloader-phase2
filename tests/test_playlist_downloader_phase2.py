@@ -82,5 +82,5 @@ class TestPhase2Downloader(unittest.TestCase):
         if hasattr(self, "root"):
             self.root.destroy()
 
-if __name__ == '__main__': # pragma: no cover
+if __name__ == '__main__':
     unittest.main()
