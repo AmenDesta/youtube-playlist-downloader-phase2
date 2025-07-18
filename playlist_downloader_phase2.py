@@ -26,6 +26,7 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk, scrolledtext
 from pytubefix import Playlist
 import threading
+import re
 
 class YouTubePlaylistDownloader:
     def __init__(self, root):
@@ -46,9 +47,12 @@ class YouTubePlaylistDownloader:
         tk.Label(self.root, text=f"{self.clapper_board} YouTube Playlist Downloader {self.clapper_board}",
                  font=("Arial", 18, "bold"), bg="#87CEEB").pack(pady=10)
 
+        validcmd = (self.root.register(self.validate_url), '%P')
+        invalidcmd = (self.root.register(self.on_invalid_url),)
         tk.Label(self.root, text="Enter YouTube Playlist URL:",
                  font=("Arial", 12, "bold"), bg="#87CEEB").pack(pady=5)
         self.url_entry = tk.Entry(self.root, width=50)
+        self.url_entry.config(validate='focusout', validatecommand=validcmd, invalidcommand=invalidcmd)
         self.url_entry.pack(pady=5)
 
         tk.Button(self.root, text="Select Folder", command=self.select_folder,
@@ -94,6 +98,16 @@ class YouTubePlaylistDownloader:
         self.console.insert(tk.END, f"{msg}\n")
         self.console.see(tk.END)
         self.console.config(state="disabled")
+    
+    def validate_url(self, value):
+        regex = r'(https?://)?(www\.|m\.)?(youtube\.com|youtu\.be)/(playlist\?list=|watch\?.*?&list=)([a-zA-Z0-9_-]+)'
+        if re.fullmatch(regex, value) is None:
+            return False
+        self.url_entry.config(highlightthickness=0)
+        return True
+    
+    def on_invalid_url(self):
+        self.url_entry.config(highlightbackground="red", highlightcolor="red", highlightthickness=2)
 
     def toggle_pause(self):
         self.pause_download = not self.pause_download
