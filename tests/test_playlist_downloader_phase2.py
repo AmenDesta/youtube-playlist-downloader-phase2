@@ -82,7 +82,6 @@ class TestPhase2Downloader(unittest.TestCase):
         self.app_folder_path = simulated_input
         self.assertEqual(self.app_folder_path, "/downloads/my_playlist")
 
-    @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def test_validate_url(self):
         valid_urls = [
             "https://www.youtube.com/playlist?list=asdf123",
