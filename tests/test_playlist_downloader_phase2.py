@@ -13,7 +13,11 @@ License: For educational use only.
 import os
 import unittest
 import tkinter as tk
+import sys
 from unittest import skipIf
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from playlist_downloader_phase2 import YouTubePlaylistDownloader
 
 # Detect if running in GitHub Actions (headless environment)
 is_ci = os.environ.get("CI") == "true"
@@ -27,6 +31,7 @@ class TestPhase2Downloader(unittest.TestCase):
         self.app_folder_path = "sample_folder"
         self.playback_index = 0
         self.video_list = ["00_intro.mp4", "01_setup.mp4", "02_demo.mp4"]
+        self.app = YouTubePlaylistDownloader(self.root)
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def test_download_playlist_missing_inputs(self):
@@ -77,6 +82,37 @@ class TestPhase2Downloader(unittest.TestCase):
         self.app_folder_path = simulated_input
         self.assertEqual(self.app_folder_path, "/downloads/my_playlist")
 
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
+    def test_validate_url(self):
+        valid_urls = [
+            "https://www.youtube.com/playlist?list=asdf123",
+            "http://youtube.com/playlist?list=asdf123",
+            "https://m.youtube.com/playlist?list=asdf123",
+            "https://www.youtube.com/watch?v=abc123&list=asdf123",
+            "https://youtu.be/watch?v=abc123&list=asdf123",
+            "https://youtube.com/playlist?list=asdf123",
+            "http://m.youtube.com/watch?v=abc123&list=asdf123",
+            "https://www.youtube.com/playlist?list=asdf123_123-456",
+            "https://youtube.com/watch?v=xyz987&list=asdf123"
+        ]
+
+        invalid_urls = [
+            "https://www.youtube.com/watch?v=abc123",
+            "https://www.google.com/playlist?list=asdf123",
+            "random string",
+            "https://youtube.com/playlist?list=",
+            "https://youtu.be/abc123",
+            "https://youtube.com/",
+            "https://www.youtube.com/",
+            "http://m.youtube.com/",
+            ""
+        ]
+
+        for url in valid_urls:
+            self.assertTrue(self.app.validate_url(url))
+        for url in invalid_urls:
+            self.assertFalse(self.app.validate_url(url))
+        
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def tearDown(self):
         if hasattr(self, "root"):
