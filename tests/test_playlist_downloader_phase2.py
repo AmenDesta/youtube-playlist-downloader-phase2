@@ -23,6 +23,7 @@ from playlist_downloader_phase2 import YouTubePlaylistDownloader
 is_ci = os.environ.get("CI") == "true"
 
 class TestPhase2Downloader(unittest.TestCase):
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def setUp(self):
         self.root = tk.Tk()
         self.root.withdraw()  # Hide the GUI window during test
@@ -81,6 +82,7 @@ class TestPhase2Downloader(unittest.TestCase):
         self.app_folder_path = simulated_input
         self.assertEqual(self.app_folder_path, "/downloads/my_playlist")
 
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def test_validate_url(self):
         valid_urls = [
             "https://www.youtube.com/playlist?list=asdf123",
@@ -111,6 +113,7 @@ class TestPhase2Downloader(unittest.TestCase):
         for url in invalid_urls:
             self.assertFalse(self.app.validate_url(url))
         
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def tearDown(self):
         if hasattr(self, "root"):
             self.root.destroy()
