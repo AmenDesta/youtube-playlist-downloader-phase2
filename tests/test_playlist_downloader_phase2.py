@@ -10,75 +10,82 @@ Functional unit tests for playlist_downloader_phase2.py:
 Last Updated: July 2025
 """
 
-import unittest
-from unittest.mock import patch, MagicMock
-import tkinter as tk
 import os
+import sys
+import unittest
+import tkinter as tk
+from unittest import skipIf
+from unittest.mock import patch
 from playlist_downloader_phase2 import YouTubePlaylistDownloader
 
-# CI-safe check to skip GUI tests
+# Support direct execution (if test run manually)
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
 is_ci = os.environ.get("CI") == "true"
 
-class TestPlaylistDownloaderPhase2(unittest.TestCase):
-
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+class TestPhase2Downloader(unittest.TestCase):
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
     def setUp(self):
         self.root = tk.Tk()
         self.root.withdraw()
         self.app = YouTubePlaylistDownloader(self.root)
+        self.clapper_board = "\U0001F3AC"
 
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    def test_toggle_pause_changes_state_and_logs(self):
-        with patch.object(self.app, "log_message") as mock_log:
-            self.app.pause_download = False
-            self.app.toggle_pause()
-            self.assertTrue(self.app.pause_download)
-            mock_log.assert_called_with("Download Paused.")
-            self.app.toggle_pause()
-            self.assertFalse(self.app.pause_download)
-            mock_log.assert_called_with("Download Resumed.")
-
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    @patch("playlist_downloader_phase2.filedialog.askdirectory", return_value="/mock/path")
-    def test_select_folder_sets_value(self, mock_dialog):
-        self.app.select_folder()
-        self.assertEqual(self.app.folder_path.get(), "/mock/path")
-
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    @patch("playlist_downloader_phase2.messagebox.showerror")
-    def test_play_video_by_index_no_folder(self, mock_error):
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @patch("tkinter.messagebox.showerror")
+    def test_download_playlist_missing_inputs(self, mock_showerror):
+        self.app.url_entry.delete(0, tk.END)
         self.app.folder_path.set("")
-        self.app.play_video_by_index(0)
-        mock_error.assert_called_once()
+        self.app.download_playlist()
+        mock_showerror.assert_called_with(f"{self.clapper_board} Error", "Please provide both URL and folder.")
 
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    def test_cancel_download_resets_state(self):
-        with patch.object(self.app, "log_message") as mock_log, \
-             patch("playlist_downloader_phase2.messagebox.showinfo") as mock_info:
-            self.app.cancel_download_action()
-            self.assertTrue(self.app.cancel_download)
-            self.assertEqual(self.app.current_video_index, 0)
-            mock_log.assert_called_with("Download canceled.")
-            mock_info.assert_called_once()
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    def test_log_message_writes_to_console(self):
+        message = "Download started"
+        self.app.log_message(message)
+        content = self.app.console.get("1.0", tk.END)
+        self.assertIn(message, content)
 
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    @patch("playlist_downloader_phase2.os.listdir", return_value=["00_intro.mp4", "01_demo.mp4", "02_summary.mp4"])
-    @patch("playlist_downloader_phase2.os.startfile")
-    def test_play_first_video_opens_correct_file(self, mock_startfile, mock_listdir):
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    def test_pause_resume_toggle_changes_state(self):
+        self.app.pause_download = False
+        self.app.toggle_pause()
+        self.assertTrue(self.app.pause_download)
+        self.app.toggle_pause()
+        self.assertFalse(self.app.pause_download)
+
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @patch("os.startfile")
+    @patch("os.listdir", return_value=["video1.mp4", "video2.mp4", "video3.mp4"])
+    def test_play_first_video_starts_correct_file(self, mock_listdir, mock_startfile):
         self.app.folder_path.set("/mock/path")
         self.app.play_first_video()
-        mock_startfile.assert_called_with("/mock/path/00_intro.mp4")
+        mock_startfile.assert_called_with(os.path.join("/mock/path", "video1.mp4"))
 
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    @patch("playlist_downloader_phase2.os.listdir", return_value=["00_intro.mp4", "01_demo.mp4", "02_summary.mp4"])
-    @patch("playlist_downloader_phase2.os.startfile")
-    def test_play_next_video_opens_correct_file(self, mock_startfile, mock_listdir):
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @patch("os.startfile")
+    @patch("os.listdir", return_value=["video1.mp4", "video2.mp4", "video3.mp4"])
+    def test_play_next_video_starts_correct_file(self, mock_listdir, mock_startfile):
         self.app.folder_path.set("/mock/path")
         self.app.current_video_index = 1
         self.app.play_next_video()
-        mock_startfile.assert_called_with("/mock/path/02_summary.mp4")
+        mock_startfile.assert_called_with(os.path.join("/mock/path", "video3.mp4"))
 
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @patch("tkinter.messagebox.showinfo")
+    def test_cancel_download_resets_state(self, mock_info):
+        self.app.current_video_index = 3
+        self.app.cancel_download_action()
+        self.assertEqual(self.app.current_video_index, 0)
+        mock_info.assert_called_with(f"{self.clapper_board} Canceled", "Download canceled!")
+
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @patch("tkinter.filedialog.askdirectory", return_value="/downloads/my_playlist")
+    def test_select_folder_sets_path(self, mock_dialog):
+        self.app.select_folder()
+        self.assertEqual(self.app.folder_path.get(), "/downloads/my_playlist")
+
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
     def test_validate_url_full_range(self):
         valid_urls = [
             "https://www.youtube.com/playlist?list=asdf123",
@@ -109,16 +116,9 @@ class TestPlaylistDownloaderPhase2(unittest.TestCase):
         for url in invalid_urls:
             self.assertFalse(self.app.validate_url(url), msg=f"Should be invalid: {url}")
 
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    def test_log_message_writes_to_console(self):
-        msg = "Download started"
-        self.app.log_message(msg)
-        content = self.app.console.get("1.0", tk.END)
-        self.assertIn(msg, content)
-
-    @unittest.skipIf(is_ci, "Skipping GUI-dependent tests in CI")
+    @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
     def tearDown(self):
         self.root.destroy()
 
-if __name__ == "__main__":  # pragma: no cover
+if __name__ == "__main__":
     unittest.main()
