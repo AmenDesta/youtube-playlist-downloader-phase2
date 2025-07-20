@@ -16,10 +16,10 @@ import unittest
 import tkinter as tk
 from unittest import skipIf
 from unittest.mock import patch
-from playlist_downloader_phase2 import YouTubePlaylistDownloader
 
 # Support direct execution (if test run manually)
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from playlist_downloader_phase2 import YouTubePlaylistDownloader
 
 is_ci = os.environ.get("CI") == "true"
 
