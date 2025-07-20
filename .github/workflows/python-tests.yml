@@ -9,6 +9,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      CI: true  # Ensures CI-aware logic works in tests
 
     steps:
     - name: Checkout code
