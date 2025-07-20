@@ -15,6 +15,7 @@ import unittest
 import tkinter as tk
 import sys
 from unittest import skipIf
+from unittest.mock import patch
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from playlist_downloader_phase2 import YouTubePlaylistDownloader
@@ -27,60 +28,65 @@ class TestPhase2Downloader(unittest.TestCase):
     def setUp(self):
         self.root = tk.Tk()
         self.root.withdraw()  # Hide the GUI window during test
-        # Simulate GUI component initialization
-        self.app_folder_path = "sample_folder"
-        self.playback_index = 0
-        self.video_list = ["00_intro.mp4", "01_setup.mp4", "02_demo.mp4"]
+        self.clapper_board = "\U0001F3AC"
         self.app = YouTubePlaylistDownloader(self.root)
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
-    def test_download_playlist_missing_inputs(self):
+    @patch('tkinter.messagebox.showerror')
+    def test_download_playlist_missing_inputs(self, mock_showerror):
         # Simulated behavior for missing input validation
-        playlist_url = ""
-        folder_path = ""
-        error_triggered = playlist_url == "" or folder_path == ""
-        self.assertTrue(error_triggered)
+        self.app.playlist_url = ""
+        self.app.folder_path = tk.StringVar()
+        self.app.download_playlist()
+        mock_showerror.assert_called_with(f"{self.clapper_board} Error", 'Please provide both URL and folder.')
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def test_log_message_appends_text(self):
-        # Simulate logging behavior
-        log_output = []
-        message = "Download started"
-        log_output.append(message)
-        self.assertIn("Download started", log_output)
+        test_message = "Test123"
+        self.app.log_message(test_message)
+        console_content = self.app.console.get("1.0", "end").strip()
+        self.assertIn(test_message, console_content)
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def test_pause_resume_toggle(self):
-        is_paused = False
+        self.app.pause_download = False
         # Toggle pause
-        is_paused = not is_paused
-        self.assertTrue(is_paused)
+        self.app.toggle_pause()
+        self.assertTrue(self.app.pause_download)
         # Toggle again
-        is_paused = not is_paused
-        self.assertFalse(is_paused)
+        self.app.toggle_pause()
+        self.assertFalse(self.app.pause_download)
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
-    def test_play_first_video_starts_correct_file(self):
-        first_video = self.video_list[0]
-        self.assertEqual(first_video, "00_intro.mp4")
+    @patch('os.startfile')
+    @patch('os.listdir', return_value=['video1.mp4', 'video2.mp4', 'video3.mp4'])
+    def test_play_first_video_starts_correct_file(self, mock_listdir, mock_startfile):
+        self.app.folder_path.set('C:/valid-directory')
+        self.app.play_first_video()
+        mock_startfile.assert_called_with(os.path.join('C:/valid-directory', 'video1.mp4'))
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
-    def test_play_next_video_starts_correct_file(self):
-        current_index = 1
-        next_video = self.video_list[current_index]
-        self.assertEqual(next_video, "01_setup.mp4")
+    @patch('os.startfile')
+    @patch('os.listdir', return_value=['video1.mp4', 'video2.mp4', 'video3.mp4'])
+    def test_play_next_video_starts_correct_file(self, mock_listdir, mock_startfile):
+        self.app.folder_path.set('C:/valid-directory')
+        self.app.current_video_index = 0
+        self.app.play_next_video()
+        mock_startfile.assert_called_with(os.path.join('C:/valid-directory', 'video2.mp4'))
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
-    def test_playback_index_reset_on_cancel(self):
-        self.playback_index = 3
-        self.playback_index = 0  # Reset
-        self.assertEqual(self.playback_index, 0)
+    @patch('tkinter.messagebox.showinfo')
+    def test_playback_index_reset_on_cancel(self, mock_showinfo):
+        self.app.current_video_index = 5
+        self.app.cancel_download_action()
+        self.assertEqual(self.app.current_video_index, 0)
+        mock_showinfo.assert_called_with(f"{self.clapper_board} Canceled", 'Download canceled!')
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
-    def test_select_folder_sets_path(self):
-        simulated_input = "/downloads/my_playlist"
-        self.app_folder_path = simulated_input
-        self.assertEqual(self.app_folder_path, "/downloads/my_playlist")
+    @patch('tkinter.filedialog.askdirectory', return_value='/downloads/my_playlist')
+    def test_select_folder_sets_path(self, mock_askdirectory):
+        self.app.select_folder()
+        self.assertEqual(self.app.folder_path.get(), "/downloads/my_playlist")
 
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI environment")
     def test_validate_url(self):
