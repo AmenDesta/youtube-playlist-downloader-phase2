@@ -30,6 +30,7 @@ import re
 
 class YouTubePlaylistDownloader:
     def __init__(self, root):
+        """Initialize downloader app with GUI setup, download state variables, and default styles."""
         self.root = root
         self.clapper_board = "\U0001F3AC"
         self.root.title(f"{self.clapper_board} YouTube Playlist Downloader {self.clapper_board}")
@@ -44,6 +45,7 @@ class YouTubePlaylistDownloader:
         self.setup_gui()
 
     def setup_gui(self):
+        """Configure the GUI layout: labels, buttons, progress bar, and log console."""
         tk.Label(self.root, text=f"{self.clapper_board} YouTube Playlist Downloader {self.clapper_board}",
                  font=("Arial", 18, "bold"), bg="#87CEEB").pack(pady=10)
 
@@ -94,12 +96,14 @@ class YouTubePlaylistDownloader:
                  font=("Arial", 10, "italic"), bg="#87CEEB").pack(pady=10)
 
     def log_message(self, msg):
+        """Write a message to the scrollable console area and auto-scroll to bottom."""
         self.console.config(state="normal")
         self.console.insert(tk.END, f"{msg}\n")
         self.console.see(tk.END)
         self.console.config(state="disabled")
     
     def validate_url(self, value):
+        """Validate YouTube playlist URL using regex. Returns True if valid."""
         regex = r'(https?://)?(www\.|m\.)?(youtube\.com|youtu\.be)/(playlist\?list=|watch\?.*?&list=)([a-zA-Z0-9_-]+)'
         if re.fullmatch(regex, value) is None:
             return False
@@ -107,25 +111,30 @@ class YouTubePlaylistDownloader:
         return True
     
     def on_invalid_url(self):
+        """Highlight the URL entry box in red when validation fails."""
         self.url_entry.config(highlightbackground="red", highlightcolor="red", highlightthickness=2)
 
     def toggle_pause(self):
+        """Toggle between paused and resumed states during playlist download."""
         self.pause_download = not self.pause_download
         state = "Paused" if self.pause_download else "Resumed"
         self.log_message(f"Download {state}.")
 
     def select_folder(self):
+        """Open a dialog to select download folder and update GUI with selection."""
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             self.folder_path.set(folder_selected)
 
     def cancel_download_action(self):
+        """Cancel ongoing download, reset state, and alert user with a message box."""
         self.cancel_download = True
         self.current_video_index = 0
         self.log_message("Download canceled.")
         messagebox.showinfo(f"{self.clapper_board} Canceled", "Download canceled!")
 
     def play_video_by_index(self, index):
+        """Attempt to play the video at the specified index from the downloaded folder."""
         path = self.folder_path.get()
         if not path:
             messagebox.showerror(f"{self.clapper_board} Error", "Please select a download folder first.")
@@ -138,14 +147,17 @@ class YouTubePlaylistDownloader:
             messagebox.showerror(f"{self.clapper_board} Error", "No more videos to play.")
 
     def play_first_video(self):
+        """Reset index and play the first video in the playlist."""
         self.current_video_index = 0
         self.play_video_by_index(self.current_video_index)
 
     def play_next_video(self):
+        """Advance index and play the next video in the playlist."""
         self.current_video_index += 1
         self.play_video_by_index(self.current_video_index)
 
     def download_playlist(self):
+        """Initialize playlist download with speed tracking, progress updates, and real-time logging."""
         self.cancel_download = False
         self.pause_download = False
         self.video_list = []
