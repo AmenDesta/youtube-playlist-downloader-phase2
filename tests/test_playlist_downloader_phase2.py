@@ -25,8 +25,8 @@ is_ci = os.environ.get("CI") == "true"
 
 class TestPhase2Downloader(unittest.TestCase):
     @skipIf(is_ci, "Skipping GUI-dependent tests in CI")
-    """Initialize the test GUI app instance and set required attributes."""
     def setUp(self):
+        """Initialize the test GUI app instance and set required attributes."""
         self.root = tk.Tk()
         self.root.withdraw()
         self.app = YouTubePlaylistDownloader(self.root)
